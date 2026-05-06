@@ -13,9 +13,9 @@
 variables:
   PROJECT_PATH: "."
   CONFIG_FILE: ".pipery/config.yaml"
+  NODE_VERSION: "20"
   PACKAGE_MANAGER: "auto"
-  PYTHON_VERSION: "3.11"
-  # Security scanning controls
+  TESTS_PATH: ""
   SKIP_SAST: "false"
   SKIP_SCA: "false"
   SKIP_LINT: "false"
@@ -25,15 +25,10 @@ variables:
   SKIP_PACKAGING: "false"
   SKIP_RELEASE: "false"
   SKIP_REINTEGRATION: "false"
-  # Release configuration
   VERSION_BUMP: "patch"
-  REGISTRY: "ghcr.io"
-  REGISTRY_USERNAME: ""
-  # Secrets (set in GitLab Protected Variables)
-  # REGISTRY_PASSWORD: (set in GitLab Protected Variables)
-  # GITHUB_TOKEN: (set in GitLab Protected Variables)
-  # PYPI_TOKEN: (set in GitLab Protected Variables)
-  # Logging
+  REGISTRY: "npmjs"
+  NPM_TOKEN: ""
+  GITHUB_TOKEN: ""
   LOG_FILE: "pipery.jsonl"
   TARGET_BRANCH: "main"
 
@@ -92,13 +87,12 @@ setup:
 
 sast_scan:
   stage: sast
-  image: python:3.11-alpine
+  image: node:22-alpine
   script:
     # Refactored: Call shared script instead of inline logic
     - bash ./src/step-sast.sh
   env:
     INPUT_PROJECT_PATH: $PROJECT_PATH
-    INPUT_CONFIG_FILE: $CONFIG_FILE
     INPUT_LOG_FILE: $LOG_FILE
   allow_failure: true
   rules:
@@ -112,13 +106,12 @@ sast_scan:
 
 sca_scan:
   stage: sca
-  image: python:3.11-alpine
+  image: node:22-alpine
   script:
     # Refactored: Call shared script instead of inline logic
     - bash ./src/step-sca.sh
   env:
     INPUT_PROJECT_PATH: $PROJECT_PATH
-    INPUT_CONFIG_FILE: $CONFIG_FILE
     INPUT_LOG_FILE: $LOG_FILE
   allow_failure: true
   rules:
@@ -187,6 +180,7 @@ test:
     - bash ./src/step-test.sh
   env:
     INPUT_PROJECT_PATH: $PROJECT_PATH
+    INPUT_PACKAGE_MANAGER: $PACKAGE_MANAGER
     INPUT_TESTS_PATH: $TESTS_PATH
     INPUT_LOG_FILE: $LOG_FILE
   rules:
@@ -265,9 +259,10 @@ release:
     - bash ./src/step-release.sh
   env:
     INPUT_PROJECT_PATH: $PROJECT_PATH
-    INPUT_NPM_TOKEN: $REGISTRY_PASSWORD
+    INPUT_NPM_TOKEN: $NPM_TOKEN
     INPUT_REGISTRY: $REGISTRY
     INPUT_LOG_FILE: $LOG_FILE
+    GITHUB_SHA: $CI_COMMIT_SHA
   rules:
     - if: '$SKIP_RELEASE == "true"'
       when: never
@@ -290,7 +285,7 @@ reintegration:
   env:
     INPUT_PROJECT_PATH: $PROJECT_PATH
     INPUT_LOG_FILE: $LOG_FILE
-    INPUT_TARGET_BRANCH: $TARGET_BRANCH
+    INPUT_GITHUB_TOKEN: $GITHUB_TOKEN
     GITHUB_TOKEN: $GITHUB_TOKEN
   rules:
     - if: '$SKIP_REINTEGRATION == "true"'
