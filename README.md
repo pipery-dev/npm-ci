@@ -72,6 +72,45 @@ include:
 | `skip_release` | `false` | Skip the release step. |
 | `skip_reintegration` | `false` | Skip the reintegration step. |
 
+## Bitbucket Pipelines
+
+Bitbucket Cloud pipelines provide an alternative to GitHub Actions for this CI workflow. The equivalent pipeline configuration is provided in `bitbucket-pipelines.yml`.
+
+### Quick Start
+
+1. Copy `bitbucket-pipelines.yml` to your Bitbucket repository root
+2. Configure Protected Variables in Bitbucket (Repository Settings > Pipelines > Repository Variables):
+   - `NPM_TOKEN` - npm registry authentication token
+   - `GITHUB_TOKEN` - GitHub API access (for reintegration)
+3. Commit and push to trigger the pipeline
+
+### Pipeline Stages
+
+The Bitbucket Pipelines equivalent follows the same structure as the GitHub Actions:
+- checkout → setup → SAST (njsscan) → SCA (npm audit) → lint (ESLint) → build → test → versioning → packaging → release → reintegration → logs
+
+### Skip Flags
+
+Disable any stage using environment variables:
+- SKIP_SAST, SKIP_SCA, SKIP_LINT, SKIP_BUILD, SKIP_TEST, SKIP_VERSIONING, SKIP_PACKAGING, SKIP_RELEASE, SKIP_REINTEGRATION
+
+Example: Set `SKIP_SAST=true` in pipeline variables to skip security scanning.
+
+### Features
+
+- Same security scanning tools as GitHub Actions (njsscan, npm audit, ESLint)
+- Parallel SAST and SCA stages
+- Auto-detects npm or yarn package managers
+- Automatic versioning and tagging
+- npm registry publish with automatic token authentication
+- JSONL-based pipeline logging
+- 30-90 day artifact retention
+
+### Documentation
+
+- See `bitbucket-pipelines.yml` for complete customization options
+- Refer to [Bitbucket Pipelines Documentation](https://support.atlassian.com/bitbucket-cloud/docs/get-started-with-bitbucket-pipelines/) for detailed reference
+
 ## About Pipery
 
 <img src="https://avatars.githubusercontent.com/u/270923927?s=32" width="22" align="center" /> [**Pipery**](https://pipery.dev) is an open-source CI/CD observability platform. Every step script runs under **psh** (Pipery Shell), which intercepts all commands and emits structured JSONL events — giving you full visibility into your pipeline without any manual instrumentation.
