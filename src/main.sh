@@ -21,8 +21,12 @@ export INPUT_REGISTRY="${INPUT_REGISTRY:-npmjs}"
 export INPUT_NPM_TOKEN="${INPUT_NPM_TOKEN:-}"
 export INPUT_GITHUB_TOKEN="${INPUT_GITHUB_TOKEN:-}"
 
-SCRIPT_DIR="${GITHUB_ACTION_PATH:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
-SRC_DIR="${SCRIPT_DIR}/src"
+if [ -n "${GITHUB_ACTION_PATH:-}" ]; then
+  ACTION_ROOT="$GITHUB_ACTION_PATH"
+else
+  ACTION_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+fi
+SRC_DIR="${ACTION_ROOT}/src"
 
 if [ ! -d "${INPUT_PROJECT_PATH}" ]; then
   echo "ERROR: project path does not exist: ${INPUT_PROJECT_PATH}" >&2
@@ -47,6 +51,9 @@ if ! command -v pipery-steps >/dev/null 2>&1; then
   pip install git+https://github.com/pipery-dev/pipery-tooling.git -q 2>/dev/null || \
     pip3 install git+https://github.com/pipery-dev/pipery-tooling.git -q 2>/dev/null || true
 fi
+
+echo "==> Install dependencies"
+"${SRC_DIR}/step-install.sh" || { echo "Install step failed" >&2; exit 1; }
 
 # SAST
 if [ "${INPUT_SKIP_SAST}" != "true" ]; then

@@ -102,6 +102,14 @@ runs:
       env:
         INPUT_CONFIG_FILE: ${{ inputs.config_file }}
 
+    - name: Install dependencies
+      shell: bash
+      run: ${{ github.action_path }}/src/step-install.sh
+      env:
+        INPUT_PROJECT_PATH: ${{ inputs.project_path }}
+        INPUT_PACKAGE_MANAGER: ${{ inputs.package_manager }}
+        INPUT_LOG_FILE: ${{ inputs.log_file }}
+
     - name: Install pipery-tooling
       shell: bash
       run: pip install git+https://github.com/pipery-dev/pipery-tooling.git -q
