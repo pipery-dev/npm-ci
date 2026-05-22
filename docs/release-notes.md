@@ -1,10 +1,10 @@
-# Release v1.0.0
+# Release v1.0.1
 
 Repository: `pipery-dev/pipery-npm-ci`
 
 ## Deployment
 
-Reference this release as `pipery-dev/pipery-npm-ci@v1.0.0`, `pipery-dev/pipery-npm-ci@v1.0`, or `pipery-dev/pipery-npm-ci@v1`.
+Reference this release as `pipery-dev/pipery-npm-ci@v1.0.1`, `pipery-dev/pipery-npm-ci@v1.0`, or `pipery-dev/pipery-npm-ci@v1`.
 
 ## Changelog
 
