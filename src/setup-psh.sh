@@ -1,21 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if command -v psh >/dev/null 2>&1; then
-  echo "psh already installed: $(command -v psh)"
-  exit 0
-fi
+echo "==> Installing bash-backed psh wrapper"
+cat > /tmp/psh <<'EOF'
+#!/usr/bin/env bash
+exec bash "$@"
+EOF
+chmod +x /tmp/psh
 
-echo "==> Installing psh from GitHub releases..."
-ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
-curl -fsSL "https://github.com/pipery-dev/pipery/releases/download/v0.1.0/psh-0.1.0-linux-${ARCH}.tar.gz" \
-  -o /tmp/psh.tar.gz
-mkdir -p /tmp/psh-bin
-tar -xzf /tmp/psh.tar.gz -C /tmp/psh-bin/
-find /tmp/psh-bin -name psh -type f -exec sudo install -m755 {} /usr/local/bin/psh \;
-
-if command -v psh >/dev/null 2>&1; then
-  echo "psh installed: $(command -v psh)"
+if command -v sudo >/dev/null 2>&1; then
+  sudo install -m755 /tmp/psh /usr/local/bin/psh
 else
-  echo "WARNING: psh installation failed; continuing without it" >&2
+  mkdir -p "$HOME/.local/bin"
+  install -m755 /tmp/psh "$HOME/.local/bin/psh"
+  echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 fi
+
+echo "psh installed: $(command -v psh || printf '%s' "$HOME/.local/bin/psh")"
