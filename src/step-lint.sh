@@ -3,6 +3,7 @@ set -euo pipefail
 
 LOG="${INPUT_LOG_FILE:-pipery.jsonl}"
 PROJECT="${INPUT_PROJECT_PATH:-.}"
+STRICT_LINT="${INPUT_STRICT_LINT:-false}"
 PROJECT_CACHE_KEY="$(printf '%s' "$PROJECT" | tr -c 'A-Za-z0-9._-' '_')"
 NPM_CACHE="${RUNNER_TEMP:-/tmp}/pipery-npm-cache-${PROJECT_CACHE_KEY}"
 mkdir -p "$NPM_CACHE"
@@ -13,8 +14,15 @@ ESLINT_CONFIG=$(find "${PROJECT}" -maxdepth 1 \( -name ".eslintrc*" -o -name "es
 
 if [ -n "${ESLINT_CONFIG}" ]; then
   echo "==> Lint: ESLint config found at ${ESLINT_CONFIG}"
-  npx --yes eslint "${PROJECT}" --max-warnings=0
-  printf '{"event":"lint","status":"success","tool":"eslint"}\n' >> "${LOG}"
+  if npx --yes eslint "${PROJECT}" --max-warnings=0; then
+    printf '{"event":"lint","status":"success","tool":"eslint"}\n' >> "${LOG}"
+  else
+    printf '{"event":"lint","status":"failed","tool":"eslint","strict":%s}\n' "${STRICT_LINT}" >> "${LOG}"
+    if [ "${STRICT_LINT}" = "true" ]; then
+      exit 1
+    fi
+    echo "==> Lint: issues found; continuing because strict_lint is false"
+  fi
 else
   echo "==> Lint: no ESLint config found; skipping gracefully"
   printf '{"event":"lint","status":"skipped","reason":"no_eslint_config"}\n' >> "${LOG}"

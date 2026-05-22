@@ -11,5 +11,6 @@ inputs:
   skip_packaging: "true"
   skip_release: "true"
   skip_reintegration: "true"
+  strict_lint: "true"
 expect:
   failure: true

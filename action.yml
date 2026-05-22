@@ -29,6 +29,10 @@ inputs:
     description: 'Skip lint step.'
     required: false
     default: 'false'
+  strict_lint:
+    description: 'Fail the action when lint reports errors.'
+    required: false
+    default: 'false'
   skip_build:
     description: 'Skip build step.'
     required: false
@@ -95,6 +99,7 @@ runs:
       env:
         INPUT_PROJECT_PATH: ${{ inputs.project_path }}
         INPUT_LOG_FILE: ${{ inputs.log_file }}
+        INPUT_STRICT_LINT: ${{ inputs.strict_lint }}
 
     - name: Load config
       shell: bash
