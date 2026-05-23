@@ -7,7 +7,7 @@ CI pipeline for npm/Node.js: SAST, SCA, lint, build, test, versioning, packaging
 - Owner: `pipery-dev`
 - Repository: `pipery-npm-ci`
 - Marketplace category: `continuous-integration`
-- Current version: `1.0.1`
+- Current version: `1.1.0`
 
 ## Usage
 
