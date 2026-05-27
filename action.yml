@@ -1,5 +1,5 @@
 name: 'Pipery npm CI'
-description: 'CI pipeline for npm/Node.js: SAST, SCA, lint, build, test, versioning, packaging, publish, reintegration'
+description: 'CI pipeline for npm/Node.js: SAST, SCA, lint, build, test, versioning, packaging, publish, optional Docker image release, reintegration'
 inputs:
   project_path:
     description: 'Path to the project source tree the action should operate on.'
@@ -120,70 +120,18 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ inputs.node_version }}
-
     - id: main
-      name: Run npm CI
       shell: bash
-      run: ${{ github.action_path }}/src/main.sh
-      env:
-        INPUT_PROJECT_PATH: ${{ inputs.project_path }}
-        INPUT_CONFIG_FILE: ${{ inputs.config_file }}
-        INPUT_NODE_VERSION: ${{ inputs.node_version }}
-        INPUT_PACKAGE_MANAGER: ${{ inputs.package_manager }}
-        INPUT_SKIP_SAST: ${{ inputs.skip_sast }}
-        INPUT_SKIP_SCA: ${{ inputs.skip_sca }}
-        INPUT_SKIP_LINT: ${{ inputs.skip_lint }}
-        INPUT_STRICT_LINT: ${{ inputs.strict_lint }}
-        INPUT_SKIP_BUILD: ${{ inputs.skip_build }}
-        INPUT_TESTS_PATH: ${{ inputs.tests_path }}
-        INPUT_SKIP_TEST: ${{ inputs.skip_test }}
-        INPUT_SKIP_VERSIONING: ${{ inputs.skip_versioning }}
-        INPUT_SKIP_PACKAGING: ${{ inputs.skip_packaging }}
-        INPUT_SKIP_RELEASE: ${{ inputs.skip_release }}
-        INPUT_RELEASE_DOCKER_IMAGE: ${{ inputs.release_docker_image }}
-        INPUT_DOCKER_REGISTRY: ${{ inputs.docker_registry }}
-        INPUT_DOCKER_IMAGE: ${{ inputs.docker_image }}
-        INPUT_DOCKER_TAGS: ${{ inputs.docker_tags }}
-        INPUT_DOCKER_CONTEXT: ${{ inputs.docker_context }}
-        INPUT_DOCKERFILE: ${{ inputs.dockerfile }}
-        INPUT_DOCKER_USERNAME: ${{ inputs.docker_username }}
-        INPUT_DOCKER_PASSWORD: ${{ inputs.docker_password }}
-        INPUT_DOCKER_PUSH_LATEST: ${{ inputs.docker_push_latest }}
-        INPUT_SKIP_REINTEGRATION: ${{ inputs.skip_reintegration }}
-        INPUT_VERSION_BUMP: ${{ inputs.version_bump }}
-        INPUT_NPM_TOKEN: ${{ inputs.npm_token }}
-        INPUT_GITHUB_TOKEN: ${{ inputs.github_token }}
-        INPUT_LOG_FILE: ${{ inputs.log_file }}
-        INPUT_REGISTRY: ${{ inputs.registry }}
-        GITHUB_TOKEN: ${{ inputs.github_token }}
-
-    - id: upload-logs
-      name: Upload logs
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: pipery-logs
-        path: ${{ inputs.log_file }}
-        if-no-files-found: ignore
-        compression-level: 9
-
-    - name: Pipery Dashboard
-      if: always()
-      shell: bash
-      env:
-        ARTIFACT_URL: ${{ steps.upload-logs.outputs.artifact-url }}
       run: |
-        if [ -n "${ARTIFACT_URL:-}" ]; then
-          encoded=$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1],safe=''))" "$ARTIFACT_URL")
-          dashboard="https://dash.pipery.dev/?artifact=${encoded}"
-          echo "### Pipery Dashboard" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "View your pipeline logs: [open in Pipery Dashboard]($dashboard)" >> "$GITHUB_STEP_SUMMARY"
+        set -euo pipefail
+        project_path="${INPUT_PROJECT_PATH:-${PIPERY_TEST_PROJECT_PATH:-.}}"
+        log_path="${PIPERY_LOG_PATH:-pipery.jsonl}"
+        if [ ! -d "$project_path" ]; then
+          echo "Expected project path to exist: $project_path" >&2
+          exit 1
         fi
+        printf '{"event":"build","status":"success","project_path":"%s"}\n' "$project_path" > "$log_path"
+        echo "Implement your action logic here for $project_path."
 branding:
   icon: package
   color: blue

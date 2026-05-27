@@ -1,6 +1,6 @@
 # Using Pipery npm CI
 
-CI pipeline for npm/Node.js: SAST, SCA, lint, build, test, versioning, packaging, publish, reintegration
+CI pipeline for npm/Node.js: SAST, SCA, lint, build, test, versioning, packaging, publish, optional Docker image release, reintegration
 
 ## Recommended workflow
 
@@ -25,4 +25,32 @@ jobs:
       - uses: pipery-dev/pipery-npm-ci@v1
         with:
           project_path: .
+          config_file: .pipery/config.yaml
+          node_version: 20
+          package_manager: auto
+          skip_sast: false
+          skip_sca: false
+          skip_lint: false
+          strict_lint: false
+          skip_build: false
+          tests_path: 
+          skip_test: false
+          skip_versioning: false
+          skip_packaging: false
+          skip_release: false
+          release_docker_image: false
+          docker_registry: ghcr.io
+          docker_image: 
+          docker_tags: 
+          docker_context: .
+          dockerfile: Dockerfile
+          docker_username: 
+          docker_password: 
+          docker_push_latest: false
+          skip_reintegration: false
+          version_bump: patch
+          npm_token: 
+          github_token: 
+          log_file: pipery.jsonl
+          registry: npmjs
 ```

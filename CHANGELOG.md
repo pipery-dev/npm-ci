@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- _Nothing yet._
+
+## [1.1.1]
+
 - Added optional Docker image release support for npm applications.
 - Added script coverage for Docker build, tag, login, push, and log emission behavior.
 

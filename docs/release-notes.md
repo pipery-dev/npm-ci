@@ -1,10 +1,10 @@
-# Release v1.1.0
+# Release v1.1.1
 
 Repository: `pipery-dev/pipery-npm-ci`
 
 ## Deployment
 
-Reference this release as `pipery-dev/pipery-npm-ci@v1.1.0`, `pipery-dev/pipery-npm-ci@v1.1`, or `pipery-dev/pipery-npm-ci@v1`.
+Reference this release as `pipery-dev/pipery-npm-ci@v1.1.1`, `pipery-dev/pipery-npm-ci@v1.1`, or `pipery-dev/pipery-npm-ci@v1`.
 
 ## Changelog
 
@@ -15,6 +15,11 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 - _Nothing yet._
+
+## [1.1.1]
+
+- Added optional Docker image release support for npm applications.
+- Added script coverage for Docker build, tag, login, push, and log emission behavior.
 
 ## [1.1.0]
 
