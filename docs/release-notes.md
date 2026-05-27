@@ -1,10 +1,10 @@
-# Release v1.1.1
+# Release v1.1.2
 
 Repository: `pipery-dev/pipery-npm-ci`
 
 ## Deployment
 
-Reference this release as `pipery-dev/pipery-npm-ci@v1.1.1`, `pipery-dev/pipery-npm-ci@v1.1`, or `pipery-dev/pipery-npm-ci@v1`.
+Reference this release as `pipery-dev/pipery-npm-ci@v1.1.2`, `pipery-dev/pipery-npm-ci@v1.1`, or `pipery-dev/pipery-npm-ci@v1`.
 
 ## Changelog
 
@@ -15,6 +15,11 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 - _Nothing yet._
+
+## [1.1.2]
+
+- Restored the composite action entrypoint after release generation so the real npm CI pipeline runs.
+- Fixed ShellCheck findings in the Docker image release step.
 
 ## [1.1.1]
 
