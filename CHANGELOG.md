@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 
 - _Nothing yet._
 
+## [1.1.2]
+
+- Restored the composite action entrypoint after release generation so the real npm CI pipeline runs.
+- Fixed ShellCheck findings in the Docker image release step.
+
 ## [1.1.1]
 
 - Added optional Docker image release support for npm applications.

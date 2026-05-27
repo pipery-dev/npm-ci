@@ -41,7 +41,10 @@ if [ -z "$IMAGE" ]; then
   if [ -n "${GITHUB_REPOSITORY:-}" ]; then
     IMAGE="$(printf '%s' "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]')"
   else
-    PACKAGE_NAME="$(cd "$PROJECT" && node -p "require('./package.json').name" 2>/dev/null || true)"
+    PACKAGE_NAME=""
+    if PACKAGE_NAME_RAW="$(cd "$PROJECT" && node -p "require('./package.json').name" 2>/dev/null)"; then
+      PACKAGE_NAME="$PACKAGE_NAME_RAW"
+    fi
     IMAGE="$(printf '%s' "$PACKAGE_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/^@//; s#[^a-z0-9._/-]#-#g')"
   fi
 fi
@@ -53,7 +56,7 @@ if [ -z "$IMAGE" ]; then
 fi
 
 REGISTRY="${REGISTRY%/}"
-if [ -n "$REGISTRY" ] && [ "${IMAGE#${REGISTRY}/}" = "$IMAGE" ]; then
+if [ -n "$REGISTRY" ] && [ "${IMAGE#"$REGISTRY"/}" = "$IMAGE" ]; then
   IMAGE_REF="${REGISTRY}/${IMAGE}"
 else
   IMAGE_REF="$IMAGE"
@@ -75,7 +78,10 @@ if [ ! -f "$BUILD_DOCKERFILE" ]; then
 fi
 
 if [ -z "$TAGS" ]; then
-  PACKAGE_VERSION="$(cd "$PROJECT" && node -p "require('./package.json').version" 2>/dev/null || true)"
+  PACKAGE_VERSION=""
+  if PACKAGE_VERSION_RAW="$(cd "$PROJECT" && node -p "require('./package.json').version" 2>/dev/null)"; then
+    PACKAGE_VERSION="$PACKAGE_VERSION_RAW"
+  fi
   if [ -n "$PACKAGE_VERSION" ]; then
     TAGS="$PACKAGE_VERSION"
   fi
