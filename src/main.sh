@@ -12,10 +12,20 @@ export INPUT_SKIP_SCA="${INPUT_SKIP_SCA:-false}"
 export INPUT_SKIP_LINT="${INPUT_SKIP_LINT:-false}"
 export INPUT_STRICT_LINT="${INPUT_STRICT_LINT:-false}"
 export INPUT_SKIP_BUILD="${INPUT_SKIP_BUILD:-false}"
+export INPUT_TESTS_PATH="${INPUT_TESTS_PATH:-}"
 export INPUT_SKIP_TEST="${INPUT_SKIP_TEST:-false}"
 export INPUT_SKIP_VERSIONING="${INPUT_SKIP_VERSIONING:-false}"
 export INPUT_SKIP_PACKAGING="${INPUT_SKIP_PACKAGING:-false}"
 export INPUT_SKIP_RELEASE="${INPUT_SKIP_RELEASE:-false}"
+export INPUT_RELEASE_DOCKER_IMAGE="${INPUT_RELEASE_DOCKER_IMAGE:-false}"
+export INPUT_DOCKER_REGISTRY="${INPUT_DOCKER_REGISTRY:-ghcr.io}"
+export INPUT_DOCKER_IMAGE="${INPUT_DOCKER_IMAGE:-}"
+export INPUT_DOCKER_TAGS="${INPUT_DOCKER_TAGS:-}"
+export INPUT_DOCKER_CONTEXT="${INPUT_DOCKER_CONTEXT:-.}"
+export INPUT_DOCKERFILE="${INPUT_DOCKERFILE:-Dockerfile}"
+export INPUT_DOCKER_USERNAME="${INPUT_DOCKER_USERNAME:-}"
+export INPUT_DOCKER_PASSWORD="${INPUT_DOCKER_PASSWORD:-}"
+export INPUT_DOCKER_PUSH_LATEST="${INPUT_DOCKER_PUSH_LATEST:-false}"
 export INPUT_SKIP_REINTEGRATION="${INPUT_SKIP_REINTEGRATION:-false}"
 export INPUT_VERSION_BUMP="${INPUT_VERSION_BUMP:-patch}"
 export INPUT_REGISTRY="${INPUT_REGISTRY:-npmjs}"
@@ -102,6 +112,12 @@ fi
 if [ "${INPUT_SKIP_RELEASE}" != "true" ]; then
   echo "==> Release"
   "${SRC_DIR}/step-release.sh" || { echo "Release step failed" >&2; exit 1; }
+fi
+
+# Docker image release
+if [ "${INPUT_RELEASE_DOCKER_IMAGE}" = "true" ]; then
+  echo "==> Docker image release"
+  "${SRC_DIR}/step-docker-release.sh" || { echo "Docker image release step failed" >&2; exit 1; }
 fi
 
 # Reintegrate

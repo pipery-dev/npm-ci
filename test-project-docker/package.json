@@ -1,0 +1,10 @@
+{
+  "name": "hello-pipery-docker",
+  "version": "0.2.3",
+  "description": "Docker release fixture for pipery-npm-ci",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test"
+  },
+  "license": "MIT"
+}

@@ -5,21 +5,185 @@ inputs:
     description: 'Path to the project source tree the action should operate on.'
     required: false
     default: '.'
+  config_file:
+    description: 'Path to pipery config file.'
+    required: false
+    default: '.pipery/config.yaml'
+  node_version:
+    description: 'Node.js version to use.'
+    required: false
+    default: '20'
+  package_manager:
+    description: 'Package manager: auto, npm, yarn.'
+    required: false
+    default: 'auto'
+  skip_sast:
+    description: 'Skip SAST scan.'
+    required: false
+    default: 'false'
+  skip_sca:
+    description: 'Skip SCA scan.'
+    required: false
+    default: 'false'
+  skip_lint:
+    description: 'Skip lint step.'
+    required: false
+    default: 'false'
+  strict_lint:
+    description: 'Fail the action when lint reports errors.'
+    required: false
+    default: 'false'
+  skip_build:
+    description: 'Skip build step.'
+    required: false
+    default: 'false'
+  tests_path:
+    description: 'Path or glob passed to the test runner as an argument.'
+    required: false
+    default: ''
+  skip_test:
+    description: 'Skip test step.'
+    required: false
+    default: 'false'
+  skip_versioning:
+    description: 'Skip versioning step.'
+    required: false
+    default: 'false'
+  skip_packaging:
+    description: 'Skip packaging step.'
+    required: false
+    default: 'false'
+  skip_release:
+    description: 'Skip npm release step.'
+    required: false
+    default: 'false'
+  release_docker_image:
+    description: 'Build and push a Docker image for the application after npm packaging/release.'
+    required: false
+    default: 'false'
+  docker_registry:
+    description: 'Docker registry host used for login and image prefix.'
+    required: false
+    default: 'ghcr.io'
+  docker_image:
+    description: 'Docker image name without tag. Defaults to the GitHub repository when available.'
+    required: false
+    default: ''
+  docker_tags:
+    description: 'Comma, space, or newline separated Docker tags. Defaults to package version and sha-<short sha> when available.'
+    required: false
+    default: ''
+  docker_context:
+    description: 'Docker build context, relative to project_path unless absolute.'
+    required: false
+    default: '.'
+  dockerfile:
+    description: 'Dockerfile path, relative to project_path unless absolute.'
+    required: false
+    default: 'Dockerfile'
+  docker_username:
+    description: 'Docker registry username. For ghcr.io this is usually the GitHub actor.'
+    required: false
+    default: ''
+  docker_password:
+    description: 'Docker registry password or token.'
+    required: false
+    default: ''
+  docker_push_latest:
+    description: 'Also tag and push latest.'
+    required: false
+    default: 'false'
+  skip_reintegration:
+    description: 'Skip reintegration step.'
+    required: false
+    default: 'false'
+  version_bump:
+    description: 'Version bump kind: patch, minor, major.'
+    required: false
+    default: 'patch'
+  npm_token:
+    description: 'npm registry auth token for publishing.'
+    required: false
+    default: ''
+  github_token:
+    description: 'GitHub token for reintegration.'
+    required: false
+    default: ''
+  log_file:
+    description: 'Path to the JSONL log file.'
+    required: false
+    default: 'pipery.jsonl'
+  registry:
+    description: 'npm registry target for release.'
+    required: false
+    default: 'npmjs'
 runs:
   using: composite
   steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node_version }}
+
     - id: main
+      name: Run npm CI
       shell: bash
+      run: ${{ github.action_path }}/src/main.sh
+      env:
+        INPUT_PROJECT_PATH: ${{ inputs.project_path }}
+        INPUT_CONFIG_FILE: ${{ inputs.config_file }}
+        INPUT_NODE_VERSION: ${{ inputs.node_version }}
+        INPUT_PACKAGE_MANAGER: ${{ inputs.package_manager }}
+        INPUT_SKIP_SAST: ${{ inputs.skip_sast }}
+        INPUT_SKIP_SCA: ${{ inputs.skip_sca }}
+        INPUT_SKIP_LINT: ${{ inputs.skip_lint }}
+        INPUT_STRICT_LINT: ${{ inputs.strict_lint }}
+        INPUT_SKIP_BUILD: ${{ inputs.skip_build }}
+        INPUT_TESTS_PATH: ${{ inputs.tests_path }}
+        INPUT_SKIP_TEST: ${{ inputs.skip_test }}
+        INPUT_SKIP_VERSIONING: ${{ inputs.skip_versioning }}
+        INPUT_SKIP_PACKAGING: ${{ inputs.skip_packaging }}
+        INPUT_SKIP_RELEASE: ${{ inputs.skip_release }}
+        INPUT_RELEASE_DOCKER_IMAGE: ${{ inputs.release_docker_image }}
+        INPUT_DOCKER_REGISTRY: ${{ inputs.docker_registry }}
+        INPUT_DOCKER_IMAGE: ${{ inputs.docker_image }}
+        INPUT_DOCKER_TAGS: ${{ inputs.docker_tags }}
+        INPUT_DOCKER_CONTEXT: ${{ inputs.docker_context }}
+        INPUT_DOCKERFILE: ${{ inputs.dockerfile }}
+        INPUT_DOCKER_USERNAME: ${{ inputs.docker_username }}
+        INPUT_DOCKER_PASSWORD: ${{ inputs.docker_password }}
+        INPUT_DOCKER_PUSH_LATEST: ${{ inputs.docker_push_latest }}
+        INPUT_SKIP_REINTEGRATION: ${{ inputs.skip_reintegration }}
+        INPUT_VERSION_BUMP: ${{ inputs.version_bump }}
+        INPUT_NPM_TOKEN: ${{ inputs.npm_token }}
+        INPUT_GITHUB_TOKEN: ${{ inputs.github_token }}
+        INPUT_LOG_FILE: ${{ inputs.log_file }}
+        INPUT_REGISTRY: ${{ inputs.registry }}
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+
+    - id: upload-logs
+      name: Upload logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: pipery-logs
+        path: ${{ inputs.log_file }}
+        if-no-files-found: ignore
+        compression-level: 9
+
+    - name: Pipery Dashboard
+      if: always()
+      shell: bash
+      env:
+        ARTIFACT_URL: ${{ steps.upload-logs.outputs.artifact-url }}
       run: |
-        set -euo pipefail
-        project_path="${INPUT_PROJECT_PATH:-${PIPERY_TEST_PROJECT_PATH:-.}}"
-        log_path="${PIPERY_LOG_PATH:-pipery.jsonl}"
-        if [ ! -d "$project_path" ]; then
-          echo "Expected project path to exist: $project_path" >&2
-          exit 1
+        if [ -n "${ARTIFACT_URL:-}" ]; then
+          encoded=$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1],safe=''))" "$ARTIFACT_URL")
+          dashboard="https://dash.pipery.dev/?artifact=${encoded}"
+          echo "### Pipery Dashboard" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "View your pipeline logs: [open in Pipery Dashboard]($dashboard)" >> "$GITHUB_STEP_SUMMARY"
         fi
-        printf '{"event":"build","status":"success","project_path":"%s"}\n' "$project_path" > "$log_path"
-        echo "Implement your action logic here for $project_path."
 branding:
   icon: package
   color: blue

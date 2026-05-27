@@ -13,6 +13,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Lint shell scripts
         run: shellcheck --shell=bash src/*.sh
+      - name: Test Docker release script
+        run: bash tests/test-docker-release.sh
 
   Tests:
     runs-on: ubuntu-latest
