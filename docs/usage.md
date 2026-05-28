@@ -44,6 +44,7 @@ jobs:
           docker_tags: 
           docker_context: .
           dockerfile: Dockerfile
+          docker_platforms: 
           docker_username: 
           docker_password: 
           docker_push_latest: false

@@ -77,6 +77,7 @@ jobs:
 | `docker_tags` | no | `` | Comma, space, or newline separated Docker tags. Defaults to package version and sha-<short sha> when available. |
 | `docker_context` | no | `.` | Docker build context, relative to project_path unless absolute. |
 | `dockerfile` | no | `Dockerfile` | Dockerfile path, relative to project_path unless absolute. |
+| `docker_platforms` | no | `` | Comma separated Docker target platforms for buildx, e.g. linux/amd64,linux/arm64. Empty uses a regular Docker build for the runner platform. |
 | `docker_username` | no | `` | Docker registry username. For ghcr.io this is usually the GitHub actor. |
 | `docker_password` | no | `` | Docker registry password or token. |
 | `docker_push_latest` | no | `false` | Also tag and push latest. |

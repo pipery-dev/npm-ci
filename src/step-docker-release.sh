@@ -8,6 +8,7 @@ IMAGE="${INPUT_DOCKER_IMAGE:-}"
 TAGS="${INPUT_DOCKER_TAGS:-}"
 CONTEXT="${INPUT_DOCKER_CONTEXT:-.}"
 DOCKERFILE="${INPUT_DOCKERFILE:-Dockerfile}"
+PLATFORMS="${INPUT_DOCKER_PLATFORMS:-}"
 USERNAME="${INPUT_DOCKER_USERNAME:-}"
 PASSWORD="${INPUT_DOCKER_PASSWORD:-}"
 PUSH_LATEST="${INPUT_DOCKER_PUSH_LATEST:-false}"
@@ -116,12 +117,22 @@ for tag in $NORMALIZED_TAGS; do
   DOCKER_BUILD_ARGS+=("-t" "${IMAGE_REF}:${tag}")
 done
 
-echo "==> Docker release: building ${IMAGE_REF}"
-docker build -f "$BUILD_DOCKERFILE" "${DOCKER_BUILD_ARGS[@]}" "$BUILD_CONTEXT"
+if [ -n "$PLATFORMS" ]; then
+  if ! docker buildx version >/dev/null 2>&1; then
+    echo "ERROR: Docker buildx is required when docker_platforms is set" >&2
+    json_log "failed" "$IMAGE_REF"
+    exit 1
+  fi
+  echo "==> Docker release: building ${IMAGE_REF} for ${PLATFORMS}"
+  docker buildx build --platform "$PLATFORMS" -f "$BUILD_DOCKERFILE" "${DOCKER_BUILD_ARGS[@]}" --push "$BUILD_CONTEXT"
+else
+  echo "==> Docker release: building ${IMAGE_REF}"
+  docker build -f "$BUILD_DOCKERFILE" "${DOCKER_BUILD_ARGS[@]}" "$BUILD_CONTEXT"
 
-for tag in $NORMALIZED_TAGS; do
-  echo "==> Docker release: pushing ${IMAGE_REF}:${tag}"
-  docker push "${IMAGE_REF}:${tag}"
-done
+  for tag in $NORMALIZED_TAGS; do
+    echo "==> Docker release: pushing ${IMAGE_REF}:${tag}"
+    docker push "${IMAGE_REF}:${tag}"
+  done
+fi
 
 json_log "success" "$IMAGE_REF"

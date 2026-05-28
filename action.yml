@@ -81,6 +81,10 @@ inputs:
     description: 'Dockerfile path, relative to project_path unless absolute.'
     required: false
     default: 'Dockerfile'
+  docker_platforms:
+    description: 'Comma separated Docker target platforms for buildx, e.g. linux/amd64,linux/arm64. Empty uses a regular Docker build for the runner platform.'
+    required: false
+    default: ''
   docker_username:
     description: 'Docker registry username. For ghcr.io this is usually the GitHub actor.'
     required: false
@@ -125,6 +129,14 @@ runs:
       with:
         node-version: ${{ inputs.node_version }}
 
+    - name: Setup QEMU
+      if: inputs.release_docker_image == 'true' && inputs.docker_platforms != ''
+      uses: docker/setup-qemu-action@v3
+
+    - name: Setup Docker Buildx
+      if: inputs.release_docker_image == 'true' && inputs.docker_platforms != ''
+      uses: docker/setup-buildx-action@v3
+
     - id: main
       name: Run npm CI
       shell: bash
@@ -150,6 +162,7 @@ runs:
         INPUT_DOCKER_TAGS: ${{ inputs.docker_tags }}
         INPUT_DOCKER_CONTEXT: ${{ inputs.docker_context }}
         INPUT_DOCKERFILE: ${{ inputs.dockerfile }}
+        INPUT_DOCKER_PLATFORMS: ${{ inputs.docker_platforms }}
         INPUT_DOCKER_USERNAME: ${{ inputs.docker_username }}
         INPUT_DOCKER_PASSWORD: ${{ inputs.docker_password }}
         INPUT_DOCKER_PUSH_LATEST: ${{ inputs.docker_push_latest }}

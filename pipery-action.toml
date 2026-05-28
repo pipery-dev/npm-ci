@@ -137,6 +137,12 @@ required = false
 default = "Dockerfile"
 
 [[inputs]]
+name = "docker_platforms"
+description = "Comma separated Docker target platforms for buildx, e.g. linux/amd64,linux/arm64. Empty uses a regular Docker build for the runner platform."
+required = false
+default = ""
+
+[[inputs]]
 name = "docker_username"
 description = "Docker registry username. For ghcr.io this is usually the GitHub actor."
 required = false

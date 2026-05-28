@@ -12,7 +12,7 @@ mkdir -p "$FAKE_BIN"
 cat > "${FAKE_BIN}/docker" <<'SCRIPT'
 #!/usr/bin/env bash
 set -euo pipefail
-printf '%q ' "$0" "$@" >> "${PIPERY_FAKE_DOCKER_CALLS}"
+printf '%s ' "$0" "$@" >> "${PIPERY_FAKE_DOCKER_CALLS}"
 printf '\n' >> "${PIPERY_FAKE_DOCKER_CALLS}"
 if [ "${1:-}" = "login" ]; then
   cat >/dev/null
@@ -44,5 +44,18 @@ grep -F "docker push registry.example.com/team/web:1.2.3" "$CALLS" >/dev/null
 grep -F "docker push registry.example.com/team/web:sha-test" "$CALLS" >/dev/null
 grep -F "docker push registry.example.com/team/web:latest" "$CALLS" >/dev/null
 grep -F '"event":"docker_release","status":"success","image":"registry.example.com/team/web"' "${INPUT_LOG_FILE}" >/dev/null
+
+export INPUT_DOCKER_PLATFORMS="linux/amd64,linux/arm64"
+>"$CALLS"
+
+bash "${ROOT}/src/step-docker-release.sh"
+
+grep -F "docker buildx version" "$CALLS" >/dev/null
+grep -F "docker buildx build --platform linux/amd64,linux/arm64" "$CALLS" >/dev/null
+grep -F -- "--push" "$CALLS" >/dev/null
+if grep -F "docker push registry.example.com/team/web" "$CALLS" >/dev/null; then
+  echo "docker push should not be called separately for buildx platform builds" >&2
+  exit 1
+fi
 
 echo "docker release script test passed"
